@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Adivya — Scholarship Journey Companion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --soil:#22331f; --forest:#2f4a2b; --leaf:#5b8a4a; --sprout:#9cbf6e;
+  --ochre:#c98a1c; --clay:#a3502b; --sand:#f6f1e4; --sand-2:#eee6d2;
+  --ink:#22271e; --paper:#fffdf8; --line:#ddd3ba; --danger:#b3432e;
+  --radius-s:6px; --radius-m:10px;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+html,body{height:100%;}
+body{
+  margin:0; background:var(--sand); color:var(--ink);
+  font-family:'Work Sans',system-ui,sans-serif; font-size:16px; line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3{font-family:'Fraunces',Georgia,serif; margin:0 0 .3em; color:var(--soil); font-weight:600;}
+a{color:inherit;}
+button{font-family:inherit; cursor:pointer;}
+::selection{background:var(--sprout); color:var(--soil);}
+
+/* app shell */
+#app{max-width:960px; margin:0 auto; min-height:100%; display:flex; flex-direction:column;}
+
+/* topbar */
+.topbar{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 20px; border-bottom:1px solid var(--line);
+  position:sticky; top:0; background:var(--sand); z-index:10;
+  padding-top:calc(16px + env(safe-area-inset-top,0px));
+}
+.brand{display:flex; align-items:center; gap:10px;}
+.brand .mark{width:34px; height:34px; border-radius:50%; background:var(--forest); display:flex; align-items:center; justify-content:center; color:var(--sand); font-family:'Fraunces',serif; font-weight:600; font-size:17px;}
+.brand span{font-family:'Fraunces',serif; font-weight:600; font-size:20px; letter-spacing:.2px;}
+.user-chip{display:flex; align-items:center; gap:10px; font-size:14px; color:var(--forest);}
+.user-chip button{background:none; border:1px solid var(--line); border-radius:20px; padding:6px 14px; font-size:13px; color:var(--soil);}
+.user-chip button:hover{border-color:var(--forest);}
+
+/* nav (bottom on mobile, side-ish tabs on desktop) */
+nav.tabs{
+  display:flex; overflow-x:auto; gap:2px; padding:0 20px; border-bottom:1px solid var(--line);
+  background:var(--sand); position:sticky; top:66px; z-index:9;
+}
+nav.tabs button{
+  background:none; border:none; padding:12px 14px; font-size:14px; color:#6b6656;
+  border-bottom:2px solid transparent; white-space:nowrap;
+}
+nav.tabs button.active{color:var(--soil); border-bottom-color:var(--ochre); font-weight:600;}
+
+main{flex:1; padding:24px 20px 60px;}
+.page{display:none;} .page.active{display:block;}
+
+/* auth */
+.auth-wrap{min-height:100vh; min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:24px;}
+.auth-card{width:100%; max-width:400px; background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-m); padding:32px 28px;}
+.auth-card .mark-big{width:52px; height:52px; border-radius:50%; background:var(--forest); color:var(--sand); display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-size:24px; font-weight:600; margin-bottom:16px;}
+.auth-card h1{font-size:26px;}
+.auth-card p.tag{color:#6b6656; margin:0 0 22px; font-size:14.5px;}
+.field{margin-bottom:14px;}
+.field label{display:block; font-size:13px; color:#5a5648; margin-bottom:5px;}
+.field input,.field select{
+  width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:var(--radius-s);
+  font-size:15px; font-family:inherit; background:var(--paper); color:var(--ink);
+}
+.field input:focus,.field select:focus{outline:2px solid var(--leaf); outline-offset:1px; border-color:var(--leaf);}
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  background:var(--forest); color:var(--sand); border:none; border-radius:var(--radius-s);
+  padding:11px 18px; font-size:15px; font-weight:600; width:100%;
+}
+.btn:hover{background:var(--soil);}
+.btn.secondary{background:none; border:1px solid var(--line); color:var(--soil);}
+.btn.secondary:hover{border-color:var(--forest);}
+.btn.small{width:auto; padding:8px 14px; font-size:13.5px;}
+.switch-line{text-align:center; margin-top:16px; font-size:14px; color:#6b6656;}
+.switch-line button{background:none; border:none; color:var(--clay); font-weight:600; text-decoration:underline; padding:0; font-size:14px;}
+.error-msg{background:#f7e2dc; color:var(--danger); border-radius:var(--radius-s); padding:9px 12px; font-size:13.5px; margin-bottom:14px;}
+
+/* cards / grid */
+.grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin-bottom:22px;}
+.card{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-m); padding:18px;}
+.card .k{font-size:12.5px; color:#7a7563; margin-bottom:6px;}
+.card .v{font-family:'Fraunces',serif; font-size:26px; color:var(--soil); font-weight:600;}
+.card .v small{font-family:'Work Sans',sans-serif; font-size:13px; font-weight:500; color:#6b6656;}
+.section-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px; gap:10px; flex-wrap:wrap;}
+.section-head h2{font-size:20px;}
+.muted{color:#7a7563; font-size:14px;}
+.empty{border:1px dashed var(--line); border-radius:var(--radius-m); padding:26px 20px; text-align:center; color:#7a7563; font-size:14.5px;}
+.empty .btn{width:auto; margin-top:12px;}
+
+/* list rows */
+.row{background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-m); padding:14px 16px; margin-bottom:10px; display:flex; align-items:center; gap:12px;}
+.row .dot{width:10px; height:10px; border-radius:50%; flex-shrink:0;}
+.dot.green{background:var(--leaf);} .dot.amber{background:var(--ochre);} .dot.red{background:var(--danger);}
+.row .rt{flex:1; min-width:0;}
+.row .rt .t{font-weight:600; font-size:15px;}
+.row .rt .s{font-size:13px; color:#7a7563; margin-top:2px;}
+.row .action{flex-shrink:0;}
+.pill{display:inline-block; font-size:11.5px; padding:3px 9px; border-radius:20px; background:var(--sand-2); color:var(--soil); margin-left:6px;}
+
+/* modal */
+.overlay{position:fixed; inset:0; background:rgba(34,39,30,.45); display:none; align-items:center; justify-content:center; padding:20px; z-index:50;}
+.overlay.show{display:flex;}
+.modal{background:var(--paper); border-radius:var(--radius-m); padding:24px; max-width:440px; width:100%; max-height:85vh; overflow-y:auto;}
+.modal h3{font-size:19px; margin-bottom:16px;}
+.modal-actions{display:flex; gap:10px; margin-top:6px;}
+
+/* tree journey */
+.tree-stages{display:flex; gap:14px; margin-bottom:22px; flex-wrap:wrap;}
+.tstage{flex:1; min-width:150px; background:var(--paper); border:1px solid var(--line); border-radius:var(--radius-m); padding:18px; text-align:center;}
+.tstage.done{border-color:var(--leaf); background:#f1f6ea;}
+.tstage .emoji{font-size:30px; display:block; margin-bottom:8px;}
+.tstage .t{font-weight:600; font-size:14.5px; margin-bottom:2px;}
+.tstage .s{font-size:12.5px; color:#7a7563;}
+.progress-track{height:8px; background:var(--sand-2); border-radius:6px; overflow:hidden; margin-bottom:6px;}
+.progress-fill{height:100%; background:var(--leaf);}
+
+.rescue-banner{background:#fbeee7; border:1px solid #e3b79f; border-radius:var(--radius-m); padding:16px 18px; margin-bottom:20px; display:flex; align-items:center; gap:12px;}
+.rescue-banner .txt{font-size:14.5px; color:var(--clay); font-weight:600;}
+
+.checklist-item{display:flex; align-items:center; gap:10px; padding:11px 0; border-bottom:1px solid var(--line);}
+.checklist-item:last-child{border-bottom:none;}
+.checklist-item input[type=checkbox]{width:18px; height:18px; accent-color:var(--leaf); flex-shrink:0;}
+.checklist-item label{font-size:14.5px; flex:1;}
+.checklist-item label.done{text-decoration:line-through; color:#9a9585;}
+
+textarea{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:var(--radius-s); font-family:inherit; font-size:14.5px; resize:vertical; min-height:70px;}
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --sand:#1b1e17; --sand-2:#262a20; --paper:#22261d; --ink:#e9e6da; --soil:#e9e6da;
+    --line:#3a3a2e; --forest:#7fa86a;
+  }
+  :root:not([data-theme="light"]) .brand .mark, :root:not([data-theme="light"]) .auth-card .mark-big{color:#1b1e17;}
+}
+:root[data-theme="dark"]{
+  --sand:#1b1e17; --sand-2:#262a20; --paper:#22261d; --ink:#e9e6da; --soil:#e9e6da;
+  --line:#3a3a2e; --forest:#7fa86a;
+}
+@media (max-width:600px){
+  nav.tabs{top:64px;}
+  .card .v{font-size:22px;}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- AUTH SCREEN -->
+  <div id="authScreen" class="auth-wrap">
+    <div class="auth-card">
+      <div class="mark-big">A</div>
+      <h1 id="authTitle">Welcome to Adivya</h1>
+      <p class="tag">Your scholarship journey, from first search to finished degree.</p>
+      <div id="authError"></div>
+      <form id="authForm">
+        <div class="field" id="nameField">
+          <label for="fName">Full name</label>
+          <input type="text" id="fName" autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="fEmail">Email</label>
+          <input type="email" id="fEmail" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="fPass">Password</label>
+          <input type="password" id="fPass" autocomplete="current-password" required>
+        </div>
+        <button type="submit" class="btn" id="authSubmit">Log in</button>
+      </form>
+      <div class="switch-line">
+        <span id="switchText">New here?</span> <button id="switchBtn" type="button">Create an account</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="mainApp" style="display:none;">
+    <div class="topbar">
+      <div class="brand"><div class="mark">A</div><span>Adivya</span></div>
+      <div class="user-chip"><span id="userGreeting">Hi</span><button id="logoutBtn">Log out</button></div>
+    </div>
+    <nav class="tabs" id="tabs">
+      <button data-page="dashboard" class="active">Dashboard</button>
+      <button data-page="profile">My Profile</button>
+      <button data-page="opportunities">Opportunities</button>
+      <button data-page="eligibility">Eligibility Check</button>
+      <button data-page="vault">Document Vault</button>
+      <button data-page="applications">Applications</button>
+      <button data-page="journey">My Journey</button>
+    </nav>
+
+    <main>
+      <!-- DASHBOARD -->
+      <section class="page active" id="page-dashboard">
+        <div id="rescueSlot"></div>
+        <div class="section-head"><h2>Your overview</h2></div>
+        <div class="grid" id="dashCards"></div>
+        <div class="section-head"><h2>Next best action</h2></div>
+        <div id="nextAction"></div>
+      </section>
+
+      <!-- PROFILE -->
+      <section class="page" id="page-profile">
+        <div class="section-head"><h2>My profile</h2><span class="muted">Used to match opportunities & check eligibility</span></div>
+        <div class="card">
+          <div class="grid" style="margin-bottom:0;">
+            <div class="field"><label>Course of study</label><input id="pCourse" placeholder="e.g. B.Tech Computer Science"></div>
+            <div class="field"><label>Institution</label><input id="pInstitution" placeholder="e.g. Govt Engineering College"></div>
+            <div class="field"><label>Institution tier</label>
+              <select id="pTier"><option value="">Select</option><option>Central</option><option>State</option><option>Private</option></select>
+            </div>
+            <div class="field"><label>Annual family income (₹)</label><input id="pIncome" type="number" placeholder="e.g. 150000"></div>
+            <div class="field"><label>State / location</label><input id="pLocation" placeholder="e.g. Jharkhand"></div>
+            <div class="field"><label>Category</label>
+              <select id="pCategory"><option value="">Select</option><option>ST</option><option>SC</option><option>OBC</option><option>General</option></select>
+            </div>
+          </div>
+          <button class="btn" id="saveProfile" style="width:auto; margin-top:6px;">Save profile</button>
+          <span id="profileSaved" class="muted" style="margin-left:10px;"></span>
+        </div>
+      </section>
+
+      <!-- OPPORTUNITIES -->
+      <section class="page" id="page-opportunities">
+        <div class="section-head"><h2>Opportunity radar</h2><button class="btn small" id="addOppBtn">+ Add opportunity</button></div>
+        <p class="muted" style="margin-top:-8px;">Add scholarships you've found — Adivya checks them against your profile and shows how well you match.</p>
+        <div id="oppList"></div>
+      </section>
+
+      <!-- ELIGIBILITY -->
+      <section class="page" id="page-eligibility">
+        <div class="section-head"><h2>Eligibility & what-if</h2></div>
+        <div class="card" style="margin-bottom:20px;">
+          <h3 style="font-size:16px; margin-bottom:10px;">Rule check against your profile</h3>
+          <div id="ruleCheck"></div>
+        </div>
+        <div class="card">
+          <h3 style="font-size:16px; margin-bottom:6px;">What-if simulator</h3>
+          <p class="muted" style="margin-top:0;">Try a different course tier or income bracket to see how your matches would change — this doesn't affect your saved profile.</p>
+          <div class="grid" style="margin-bottom:12px;">
+            <div class="field"><label>Try institution tier</label>
+              <select id="wTier"><option value="">Same as profile</option><option>Central</option><option>State</option><option>Private</option></select>
+            </div>
+            <div class="field"><label>Try annual income (₹)</label><input id="wIncome" type="number" placeholder="Same as profile"></div>
+          </div>
+          <button class="btn" style="width:auto;" id="runWhatIf">Run simulation</button>
+          <div id="whatIfResult" style="margin-top:14px;"></div>
+        </div>
+      </section>
+
+      <!-- VAULT -->
+      <section class="page" id="page-vault">
+        <div class="section-head"><h2>Document vault</h2></div>
+        <p class="muted" style="margin-top:-8px;">Mark documents as ready once verified. Reuse the same document across every application — no need to re-upload.</p>
+        <div class="card" id="vaultList"></div>
+        <button class="btn small" id="addDocBtn" style="width:auto; margin-top:14px;">+ Add document type</button>
+      </section>
+
+      <!-- APPLICATIONS -->
+      <section class="page" id="page-applications">
+        <div class="section-head"><h2>My applications</h2><button class="btn small" id="addAppBtn">+ Track an application</button></div>
+        <div id="appList"></div>
+      </section>
+
+      <!-- JOURNEY -->
+      <section class="page" id="page-journey">
+        <div class="section-head"><h2>My scholarship journey</h2></div>
+        <div class="tree-stages" id="treeStages"></div>
+        <div class="card">
+          <h3 style="font-size:16px;">Share your milestone</h3>
+          <p class="muted" style="margin-top:0;">A shareable card with no sensitive details — just the moment.</p>
+          <div class="field"><label>Personal message</label><textarea id="milestoneMsg" placeholder="Proud to take the next step in my education for my family and community!"></textarea></div>
+          <button class="btn" style="width:auto;" id="genCard">Generate achievement card</button>
+          <div id="cardPreview" style="margin-top:16px;"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- Generic modal -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modalBody"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- storage helpers (per-browser only) ---------- */
+function safeGet(k,fallback){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):fallback; }catch(e){ return fallback; } }
+function safeSet(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+const USERS_KEY='adivya_users';
+const SESSION_KEY='adivya_session';
+
+function getUsers(){ return safeGet(USERS_KEY, {}); }
+function saveUsers(u){ safeSet(USERS_KEY,u); }
+function dataKey(email){ return 'adivya_data_'+email; }
+function getData(email){
+  return safeGet(dataKey(email), {
+    profile:{}, opportunities:[], documents:[], applications:[], milestoneStage:0
+  });
+}
+function saveData(email,d){ safeSet(dataKey(email), d); }
+
+let session = safeGet(SESSION_KEY, null);
+let isSignup = false;
+
+/* ---------- AUTH ---------- */
+const authScreen=document.getElementById('authScreen');
+const mainApp=document.getElementById('mainApp');
+const authForm=document.getElementById('authForm');
+const authTitle=document.getElementById('authTitle');
+const authSubmit=document.getElementById('authSubmit');
+const nameField=document.getElementById('nameField');
+const switchText=document.getElementById('switchText');
+const switchBtn=document.getElementById('switchBtn');
+const authError=document.getElementById('authError');
+
+function setAuthMode(signup){
+  isSignup=signup;
+  authError.innerHTML='';
+  if(signup){
+    authTitle.textContent='Create your account';
+    authSubmit.textContent='Create account';
+    nameField.style.display='block';
+    switchText.textContent='Already have an account?';
+    switchBtn.textContent='Log in';
+  } else {
+    authTitle.textContent='Welcome back';
+    authSubmit.textContent='Log in';
+    nameField.style.display='none';
+    switchText.textContent='New here?';
+    switchBtn.textContent='Create an account';
+  }
+}
+switchBtn.addEventListener('click',()=>setAuthMode(!isSignup));
+setAuthMode(false);
+
+authForm.addEventListener('submit', function(e){
+  e.preventDefault();
+  authError.innerHTML='';
+  const email=document.getElementById('fEmail').value.trim().toLowerCase();
+  const pass=document.getElementById('fPass').value;
+  const name=document.getElementById('fName').value.trim();
+  const users=getUsers();
+  if(isSignup){
+    if(users[email]){ authError.innerHTML='<div class="error-msg">An account with this email already exists. Try logging in.</div>'; return; }
+    if(!name){ authError.innerHTML='<div class="error-msg">Please enter your name.</div>'; return; }
+    users[email]={name:name, pass:pass};
+    saveUsers(users);
+    saveData(email, getData(email));
+    session={email:email,name:name};
+    safeSet(SESSION_KEY, session);
+    enterApp();
+  } else {
+    const u=users[email];
+    if(!u || u.pass!==pass){ authError.innerHTML='<div class="error-msg">Email or password not recognized.</div>'; return; }
+    session={email:email,name:u.name};
+    safeSet(SESSION_KEY, session);
+    enterApp();
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', function(){
+  session=null; safeSet(SESSION_KEY,null);
+  mainApp.style.display='none'; authScreen.style.display='flex';
+  authForm.reset(); setAuthMode(false);
+});
+
+/* ---------- NAV ---------- */
+const tabs=document.getElementById('tabs');
+tabs.addEventListener('click', function(e){
+  const btn=e.target.closest('button[data-page]');
+  if(!btn) return;
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+btn.dataset.page).classList.add('active');
+  renderAll();
+});
+
+/* ---------- MODAL helper ---------- */
+const overlay=document.getElementById('overlay');
+const modalBody=document.getElementById('modalBody');
+function openModal(html){ modalBody.innerHTML=html; overlay.classList.add('show'); }
+function closeModal(){ overlay.classList.remove('show'); modalBody.innerHTML=''; }
+overlay.addEventListener('click', e=>{ if(e.target===overlay) closeModal(); });
+
+/* ---------- APP ENTRY ---------- */
+function enterApp(){
+  authScreen.style.display='none';
+  mainApp.style.display='block';
+  document.getElementById('userGreeting').textContent='Hi, '+ (session.name.split(' ')[0]||session.name);
+  renderAll();
+}
+
+/* ---------- RENDER ---------- */
+function currentData(){ return getData(session.email); }
+function persist(d){ saveData(session.email, d); }
+
+function daysUntil(dateStr){
+  if(!dateStr) return null;
+  const d=new Date(dateStr+'T23:59:59');
+  const diff=(d - new Date());
+  return Math.ceil(diff/(1000*60*60*24));
+}
+
+function matchOpportunity(opp, profile){
+  let score=0, total=0, notes=[];
+  if(opp.courseMatch!==undefined){ total++; if(opp.courseMatch){score++; notes.push('✓ Course match');} else notes.push('✗ Course mismatch'); }
+  if(opp.maxIncome){
+    total++;
+    const inc=parseFloat(profile.income);
+    if(inc && inc<=parseFloat(opp.maxIncome)){ score++; notes.push('✓ Within income ceiling'); }
+    else if(inc){ notes.push('✗ Income above ceiling'); }
+    else notes.push('⚠ Add income to check');
+  }
+  if(opp.tier){
+    total++;
+    if(profile.tier && profile.tier===opp.tier){ score++; notes.push('✓ Institution tier match'); }
+    else notes.push('⚠ Institution tier not confirmed');
+  }
+  if(total===0) return {level:'amber', notes:['⚠ Add more profile details to check match']};
+  const ratio=score/total;
+  if(ratio>=0.8) return {level:'green', notes};
+  if(ratio>=0.4) return {level:'amber', notes};
+  return {level:'red', notes};
+}
+
+function renderAll(){
+  const d=currentData();
+  renderDashboard(d);
+  renderProfile(d);
+  renderOpportunities(d);
+  renderEligibility(d);
+  renderVault(d);
+  renderApplications(d);
+  renderJourney(d);
+}
+
+/* DASHBOARD */
+function renderDashboard(d){
+  const rescueSlot=document.getElementById('rescueSlot');
+  const urgent = d.applications.filter(a=>{ const du=daysUntil(a.deadline); return du!==null && du<=2 && a.status!=='Submitted'; });
+  rescueSlot.innerHTML = urgent.length ? `
+    <div class="rescue-banner">
+      <span style="font-size:22px;">🚨</span>
+      <div class="txt">Rescue mode: ${urgent.length} application${urgent.length>1?'s':''} due within 48 hours. Open Applications to see what's left.</div>
+    </div>` : '';
+
+  const readiness = d.documents.length ? Math.round(100*d.documents.filter(x=>x.ready).length/d.documents.length) : 0;
+  const activePerms = d.documents.filter(x=>x.ready).length;
+
+  document.getElementById('dashCards').innerHTML = `
+    <div class="card"><div class="k">Opportunities added</div><div class="v">${d.opportunities.length}</div></div>
+    <div class="card"><div class="k">Readiness</div><div class="v">${readiness}<small>%</small></div></div>
+    <div class="card"><div class="k">Urgent deadlines</div><div class="v" style="color:${urgent.length?'var(--danger)':'inherit'}">${urgent.length}</div></div>
+    <div class="card"><div class="k">Applications in progress</div><div class="v">${d.applications.filter(a=>a.status!=='Submitted').length}</div></div>
+    <div class="card"><div class="k">Documents ready</div><div class="v">${activePerms}<small>/${d.documents.length}</small></div></div>
+    <div class="card"><div class="k">Journey stage</div><div class="v" style="font-size:20px;">${['Seed','Sapling','Mature Tree'][d.milestoneStage]||'Seed'}</div></div>
+  `;
+
+  let na='';
+  if(!d.profile.course) na = `<div class="empty">Your profile is empty — add your course and details so Adivya can find matching opportunities. <button class="btn small" data-goto="profile">Set up profile</button></div>`;
+  else if(!d.opportunities.length) na = `<div class="empty">No opportunities added yet. <button class="btn small" data-goto="opportunities">Add your first opportunity</button></div>`;
+  else if(urgent.length) na = `<div class="empty">Handle your ${urgent.length} urgent deadline${urgent.length>1?'s':''} first. <button class="btn small" data-goto="applications">Go to applications</button></div>`;
+  else if(d.documents.some(x=>!x.ready)) na = `<div class="empty">Some documents in your vault aren't marked ready. <button class="btn small" data-goto="vault">Review document vault</button></div>`;
+  else na = `<div class="empty">You're on track. Check your journey progress. <button class="btn small" data-goto="journey">View my journey</button></div>`;
+  document.getElementById('nextAction').innerHTML=na;
+
+  document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click', ()=>{
+    document.querySelector(`nav.tabs button[data-page="${b.dataset.goto}"]`).click();
+  }));
+}
+
+/* PROFILE */
+function renderProfile(d){
+  const p=d.profile;
+  document.getElementById('pCourse').value=p.course||'';
+  document.getElementById('pInstitution').value=p.institution||'';
+  document.getElementById('pTier').value=p.tier||'';
+  document.getElementById('pIncome').value=p.income||'';
+  document.getElementById('pLocation').value=p.location||'';
+  document.getElementById('pCategory').value=p.category||'';
+}
+document.getElementById('saveProfile').addEventListener('click', function(){
+  const d=currentData();
+  d.profile={
+    course:document.getElementById('pCourse').value.trim(),
+    institution:document.getElementById('pInstitution').value.trim(),
+    tier:document.getElementById('pTier').value,
+    income:document.getElementById('pIncome').value,
+    location:document.getElementById('pLocation').value.trim(),
+    category:document.getElementById('pCategory').value
+  };
+  persist(d);
+  document.getElementById('profileSaved').textContent='Saved ✓';
+  setTimeout(()=>document.getElementById('profileSaved').textContent='',2000);
+  renderAll();
+});
+
+/* OPPORTUNITIES */
+function renderOpportunities(d){
+  const list=document.getElementById('oppList');
+  if(!d.opportunities.length){
+    list.innerHTML=`<div class="empty">No opportunities yet. Add a scholarship you've found and Adivya will show how well it matches your profile.</div>`;
+    return;
+  }
+  list.innerHTML = d.opportunities.map((o,i)=>{
+    const m=matchOpportunity(o,d.profile);
+    return `<div class="row">
+      <div class="dot ${m.level}"></div>
+      <div class="rt"><div class="t">${escapeHtml(o.name)}</div>
+      <div class="s">${m.notes.join(' &nbsp;·&nbsp; ')}</div></div>
+      <div class="action"><button class="btn small secondary" data-del-opp="${i}">Remove</button></div>
+    </div>`;
+  }).join('');
+  list.querySelectorAll('[data-del-opp]').forEach(b=>b.addEventListener('click', function(){
+    const d=currentData(); d.opportunities.splice(+b.dataset.delOpp,1); persist(d); renderAll();
+  }));
+}
+document.getElementById('addOppBtn').addEventListener('click', function(){
+  openModal(`
+    <h3>Add an opportunity</h3>
+    <div class="field"><label>Scholarship name</label><input id="mOppName" placeholder="e.g. National Overseas Scholarship"></div>
+    <div class="field"><label>Maximum family income (₹, optional)</label><input id="mOppIncome" type="number" placeholder="e.g. 250000"></div>
+    <div class="field"><label>Required institution tier (optional)</label>
+      <select id="mOppTier"><option value="">Not specified</option><option>Central</option><option>State</option><option>Private</option></select>
+    </div>
+    <div class="field"><label>Does your course qualify?</label>
+      <select id="mOppCourse"><option value="yes">Yes</option><option value="no">No</option><option value="unsure">Not sure</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn secondary" id="mCancel">Cancel</button>
+      <button class="btn" id="mSave">Add opportunity</button>
+    </div>
+  `);
+  document.getElementById('mCancel').addEventListener('click', closeModal);
+  document.getElementById('mSave').addEventListener('click', function(){
+    const name=document.getElementById('mOppName').value.trim();
+    if(!name) return;
+    const d=currentData();
+    const cm=document.getElementById('mOppCourse').value;
+    d.opportunities.push({
+      name,
+      maxIncome:document.getElementById('mOppIncome').value||null,
+      tier:document.getElementById('mOppTier').value||null,
+      courseMatch: cm==='yes'?true:(cm==='no'?false:undefined)
+    });
+    persist(d); closeModal(); renderAll();
+  });
+});
+
+/* ELIGIBILITY */
+function renderEligibility(d){
+  const p=d.profile;
+  const rules=[
+    {label:'Course details on file', ok: !!p.course},
+    {label:'Institution tier on file', ok: !!p.tier},
+    {label:'Income on file', ok: !!p.income},
+    {label:'Category on file', ok: !!p.category},
+  ];
+  document.getElementById('ruleCheck').innerHTML = rules.length ? rules.map(r=>`
+    <div class="checklist-item"><span>${r.ok?'✅':'⚠️'}</span><label>${r.label}${r.ok?'':' — missing'}</label></div>
+  `).join('') : '<p class="muted">Add your profile to see a rule breakdown.</p>';
+}
+document.getElementById('runWhatIf').addEventListener('click', function(){
+  const d=currentData();
+  const tryTier=document.getElementById('wTier').value || d.profile.tier;
+  const tryIncome=document.getElementById('wIncome').value || d.profile.income;
+  const simProfile=Object.assign({}, d.profile, {tier:tryTier, income:tryIncome});
+  let before=0, after=0;
+  d.opportunities.forEach(o=>{
+    if(matchOpportunity(o,d.profile).level==='green') before++;
+    if(matchOpportunity(o,simProfile).level==='green') after++;
+  });
+  const delta=after-before;
+  document.getElementById('whatIfResult').innerHTML = `
+    <div class="row"><div class="rt"><div class="t">${delta>=0?'+':''}${delta} strong matches vs. now</div>
+    <div class="s">Simulation only — this doesn't change your saved profile.</div></div></div>`;
+});
+
+/* VAULT */
+function renderVault(d){
+  const el=document.getElementById('vaultList');
+  if(!d.documents.length){ el.innerHTML='<p class="muted">No documents added yet. Add each document type you might need to reuse across applications.</p>'; return; }
+  el.innerHTML = d.documents.map((doc,i)=>`
+    <div class="checklist-item">
+      <input type="checkbox" id="doc${i}" ${doc.ready?'checked':''} data-doc-toggle="${i}">
+      <label for="doc${i}" class="${doc.ready?'done':''}">${escapeHtml(doc.name)}</label>
+      <button class="btn small secondary" data-doc-del="${i}" style="width:auto;">Remove</button>
+    </div>
+  `).join('');
+  el.querySelectorAll('[data-doc-toggle]').forEach(cb=>cb.addEventListener('change', function(){
+    const d=currentData(); d.documents[+cb.dataset.docToggle].ready=cb.checked; persist(d); renderAll();
+  }));
+  el.querySelectorAll('[data-doc-del]').forEach(b=>b.addEventListener('click', function(){
+    const d=currentData(); d.documents.splice(+b.dataset.docDel,1); persist(d); renderAll();
+  }));
+}
+document.getElementById('addDocBtn').addEventListener('click', function(){
+  openModal(`
+    <h3>Add a document</h3>
+    <div class="field"><label>Document name</label><input id="mDocName" placeholder="e.g. Income Certificate"></div>
+    <div class="modal-actions">
+      <button class="btn secondary" id="mDocCancel">Cancel</button>
+      <button class="btn" id="mDocSave">Add</button>
+    </div>
+  `);
+  document.getElementById('mDocCancel').addEventListener('click', closeModal);
+  document.getElementById('mDocSave').addEventListener('click', function(){
+    const name=document.getElementById('mDocName').value.trim();
+    if(!name) return;
+    const d=currentData(); d.documents.push({name,ready:false}); persist(d); closeModal(); renderAll();
+  });
+});
+
+/* APPLICATIONS */
+function renderApplications(d){
+  const el=document.getElementById('appList');
+  if(!d.applications.length){ el.innerHTML='<div class="empty">No applications tracked yet. Add one to get deadline reminders and rescue-mode alerts.</div>'; return; }
+  el.innerHTML=d.applications.map((a,i)=>{
+    const du=daysUntil(a.deadline);
+    let dueTxt = a.deadline ? (du<0?'Deadline passed':(du===0?'Due today':`${du} day${du!==1?'s':''} left`)) : 'No deadline set';
+    const dot = a.status==='Submitted' ? 'green' : (du!==null && du<=2 ? 'red' : (du!==null && du<=7 ? 'amber' : 'green'));
+    return `<div class="row">
+      <div class="dot ${dot}"></div>
+      <div class="rt"><div class="t">${escapeHtml(a.name)} <span class="pill">${a.status}</span></div>
+      <div class="s">${dueTxt}</div></div>
+      <div class="action">
+        <select data-app-status="${i}" style="border:1px solid var(--line); border-radius:6px; padding:5px 8px; font-size:13px;">
+          <option ${a.status==='In progress'?'selected':''}>In progress</option>
+          <option ${a.status==='Submitted'?'selected':''}>Submitted</option>
+        </select>
+      </div>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('[data-app-status]').forEach(sel=>sel.addEventListener('change', function(){
+    const d=currentData(); d.applications[+sel.dataset.appStatus].status=sel.value; persist(d); renderAll();
+  }));
+}
+document.getElementById('addAppBtn').addEventListener('click', function(){
+  openModal(`
+    <h3>Track an application</h3>
+    <div class="field"><label>Scholarship / application name</label><input id="mAppName" placeholder="e.g. State Merit Scholarship"></div>
+    <div class="field"><label>Deadline</label><input id="mAppDeadline" type="date"></div>
+    <div class="modal-actions">
+      <button class="btn secondary" id="mAppCancel">Cancel</button>
+      <button class="btn" id="mAppSave">Add</button>
+    </div>
+  `);
+  document.getElementById('mAppCancel').addEventListener('click', closeModal);
+  document.getElementById('mAppSave').addEventListener('click', function(){
+    const name=document.getElementById('mAppName').value.trim();
+    if(!name) return;
+    const d=currentData();
+    d.applications.push({name, deadline:document.getElementById('mAppDeadline').value, status:'In progress'});
+    persist(d); closeModal(); renderAll();
+  });
+});
+
+/* JOURNEY */
+const STAGES=[
+  {emoji:'🌱', t:'Seed / Roots', s:'Profile set up & eligibility checked'},
+  {emoji:'🌿', t:'Sapling', s:'Application submitted & verified'},
+  {emoji:'🌳', t:'Mature Tree', s:'Scholarship awarded & renewal secured'}
+];
+function computeStage(d){
+  let stage=0;
+  if(d.profile.course) stage=Math.max(stage,1)-1+1; // has profile -> at least seed done conceptually
+  if(d.applications.some(a=>a.status==='Submitted')) stage=1;
+  if(d.applications.length && d.applications.every(a=>a.status==='Submitted') && d.applications.length>0 && d.documents.length && d.documents.every(x=>x.ready)) stage=2;
+  return Math.min(stage,2);
+}
+function renderJourney(d){
+  const stage=computeStage(d);
+  d.milestoneStage=stage;
+  document.getElementById('treeStages').innerHTML = STAGES.map((s,i)=>`
+    <div class="tstage ${i<=stage?'done':''}">
+      <span class="emoji">${s.emoji}</span>
+      <div class="t">${s.t}</div>
+      <div class="s">${s.s}</div>
+    </div>`).join('');
+}
+document.getElementById('genCard').addEventListener('click', function(){
+  const msg=document.getElementById('milestoneMsg').value.trim() || 'Proud to take the next step in my education for my family and community!';
+  document.getElementById('cardPreview').innerHTML = `
+    <div class="card" style="background:var(--sand-2);">
+      <div class="k">🎓 MY ACHIEVEMENT CARD</div>
+      <div style="font-family:'Fraunces',serif; font-size:18px; margin:8px 0;">${['Getting started','Application submitted','Scholarship awarded'][computeStage(currentData())]}</div>
+      <div style="font-style:italic; color:#5a5648;">"${escapeHtml(msg)}"</div>
+    </div>`;
+});
+
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* ---------- INIT ---------- */
+if(session && getUsers()[session.email]){ enterApp(); }
+else { authScreen.style.display='flex'; }
+
+})();
+</script>
+</body>
+</html>
+
+
